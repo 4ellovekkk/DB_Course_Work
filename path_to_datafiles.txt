@@ -1,0 +1,3 @@
+Oracle path to datafiles
+default: /opt/oracle/homes/OraDBHome21cXE/dbs
+recomendred: /opt/oracle/oradata/XE/%database_name%/
