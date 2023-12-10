@@ -22,6 +22,7 @@ create table ACCOUNT_STATS(
     account int,
     action_date date,
     action int,
+    AMOUNT float,
     constraint stats_fk1 foreign key (account) references CLIENT_ACCOUNT(id),
     constraint fk2_action foreign key (action) references actions(id)
 ) tablespace CLIENT_DATA;
@@ -51,3 +52,4 @@ create table credit_state(
     constraint fk2_owner foreign key (owner) references CLIENT_INFO(id),
     constraint fk3_credit_type foreign key (credit_type) references credit_conditions(id)
 ) tablespace  BANK_DATA;
+

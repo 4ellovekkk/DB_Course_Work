@@ -42,6 +42,7 @@ END get_user_info;
 
 
 
+
 CREATE OR REPLACE PROCEDURE check_balance(client_id IN NUMBER)
 AS
     balance NUMBER; -- Corrected the data type
@@ -65,21 +66,29 @@ when VALUE_ERROR then
 END check_balance;
 /
 
+
+
+
+
 CREATE OR REPLACE PROCEDURE account_history(
     p_account_id IN NUMBER,
     p_from_date IN DATE,
     p_to_date IN DATE
 )
 AS
+    CURSOR c_account_history IS
+        SELECT ACTION_DATE, ACTION, ACCOUNT
+        FROM ACCOUNT_STATS
+        INNER JOIN VYDRA_DBA.CLIENT_ACCOUNT CA ON CA.ID = ACCOUNT_STATS.ACCOUNT
+        WHERE CA.OWNER = p_account_id
+          AND ACTION_DATE >= p_from_date
+          AND ACTION_DATE <= p_to_date;
+
     v_operation_date DATE;
     v_operation NVARCHAR2(50);
-        v_account int;
-        v_param_check_number number;
-    v_param_check_date date;
+    v_account INT;
+
 BEGIN
-    v_param_check_number:=to_number(p_account_id);
-    v_operation_date:=to_date(p_from_date);
-    v_operation_date:=to_date(p_to_date);
     -- Validate input parameters
     IF p_account_id IS NULL OR p_from_date IS NULL OR p_to_date IS NULL THEN
         DBMS_OUTPUT.PUT_LINE('Invalid input parameters. Please provide valid values.');
@@ -92,25 +101,39 @@ BEGIN
         RETURN;
     END IF;
 
-    -- Select account history based on input parameters
+    OPEN c_account_history;
+
     BEGIN
-   select ACTION_DATE,ACTION,ACCOUNT into v_operation,v_operation,v_account from ACCOUNT_STATS inner join VYDRA_DBA.CLIENT_ACCOUNT CA on CA.ID = ACCOUNT_STATS.ACCOUNT where p_account_id=OWNER and ACTION_DATE>=p_from_date and ACTION_DATE<=p_to_date;
+        LOOP
+            FETCH c_account_history INTO v_operation_date, v_operation, v_account;
+            EXIT WHEN c_account_history%NOTFOUND;
+
+            -- Process the selected data as needed
+            DBMS_OUTPUT.PUT_LINE('Account ID: ' || p_account_id ||
+                                 ', Operation Date: ' || v_operation_date ||
+                                 ', Operation: ' || v_operation);
+        END LOOP;
     EXCEPTION
-    when VALUE_ERROR then
-        DBMS_OUTPUT.PUT_LINE('Incorrect type of parameter was passed');
+        WHEN VALUE_ERROR THEN
+            DBMS_OUTPUT.PUT_LINE('Incorrect type of parameter was passed');
         WHEN NO_DATA_FOUND THEN
             DBMS_OUTPUT.PUT_LINE('No records found for the specified account and date range.');
         WHEN OTHERS THEN
             DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
     END;
 
-    -- Process the selected data as needed
-    IF v_operation_date IS NOT NULL THEN
-        DBMS_OUTPUT.PUT_LINE('Account ID: ' || p_account_id ||
-                             ', Operation Date: ' || v_operation_date ||
-                             ', Operation: ' || v_operation);
-    END IF;
+    CLOSE c_account_history;
 END account_history;
+
+
+
+
+
+
+
+
+
+
 
 CREATE OR REPLACE PROCEDURE transfer (
     p_sender_account IN NUMBER,
@@ -180,7 +203,15 @@ exception
 END transfer;
 /
 
---TODO: fix account history procedure
+
+
+
+
+
+
+
+
+
 
 CREATE OR REPLACE PROCEDURE refill_account(p_account_id IN NUMBER, p_amount IN NUMBER) AS
 BEGIN
@@ -214,3 +245,135 @@ BEGIN
     END;
 END refill_account;
 /
+
+
+
+
+
+
+
+
+
+CREATE OR REPLACE PROCEDURE withdrawal(p_account_id IN NUMBER, p_amount IN NUMBER) AS
+BEGIN
+    -- Проверка на NULL
+    IF p_account_id IS NULL OR p_amount IS NULL THEN
+        DBMS_OUTPUT.PUT_LINE('Incorrect parameters passed');
+        RETURN;
+    END IF;
+
+    -- Попытка преобразования параметров к числовому типу
+    BEGIN
+        -- Проверка на отрицательное значение счета
+        IF p_amount <= 0 THEN
+            DBMS_OUTPUT.PUT_LINE('Amount must be greater than 0');
+            RETURN;
+        END IF;
+
+        -- Проверка на существование счета
+        IF (SELECT COUNT(*) FROM CLIENT_ACCOUNT WHERE ID = p_account_id) = 1 THEN
+            UPDATE CLIENT_ACCOUNT SET BALANCE = BALANCE + p_amount WHERE ID = p_account_id;
+            COMMIT;
+            DBMS_OUTPUT.PUT_LINE('money was withdrawaled successfully');
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Account does not exist');
+        END IF;
+    EXCEPTION
+        WHEN VALUE_ERROR THEN
+            DBMS_OUTPUT.PUT_LINE('Incorrect parameters passed');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+    END;
+END withdrawal;
+
+
+
+
+
+
+
+CREATE or replace procedure accounts_amount(p_client_id in int)
+as
+    v_param_check_number int;
+    v_amount int;
+    begin
+        v_param_check_number := to_number(p_client_id);
+       select count(*) into v_amount from CLIENT_ACCOUNT where OWNER = p_client_id;
+        DBMS_OUTPUT.PUT_LINE('Amount of accounts for current user is: '||v_amount);
+    exception
+    WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('No records found for the specified account');
+    when VALUE_ERROR then
+        DBMS_OUTPUT.PUT_LINE('Incorrect parametres type');
+    WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+    end accounts_amount;
+
+CREATE OR REPLACE PROCEDURE accounts_turnover(p_user_id IN INT)
+AS
+  v_total_sum NUMBER := 0;
+
+  CURSOR c_values_for_user IS
+    SELECT amount
+    FROM ACCOUNT_STATS
+    INNER JOIN CLIENT_ACCOUNT ON ACCOUNT_STATS.ACCOUNT = CLIENT_ACCOUNT.ID
+    WHERE OWNER = p_user_id AND AMOUNT IS NOT NULL;
+
+BEGIN
+  FOR r_value IN c_values_for_user LOOP
+    v_total_sum := v_total_sum + r_value.amount; -- Use lowercase for cursor attribute
+  END LOOP;
+
+  IF v_total_sum IS NOT NULL THEN
+    DBMS_OUTPUT.PUT_LINE('Total sum for user ' || p_user_id || ': ' || v_total_sum);
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('No data found for user ' || p_user_id);
+  END IF;
+
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('No data found for user ' || p_user_id);
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END accounts_turnover;
+/
+
+
+
+
+
+
+CREATE OR REPLACE PROCEDURE operations_amount(
+    p_from_date IN DATE,
+    p_to_date IN DATE,
+    p_user_id IN INT,
+    p_account_id IN INT
+)
+IS
+    v_operations_count INT;
+
+BEGIN
+    SELECT COUNT(*)
+    INTO v_operations_count
+    FROM ACCOUNT_STATS
+    INNER JOIN VYDRA_DBA.CLIENT_ACCOUNT ON ACCOUNT_STATS.ACCOUNT = CLIENT_ACCOUNT.ID
+    WHERE ACTION_DATE <= p_to_date
+        AND ACTION_DATE >= p_from_date
+        AND p_user_id = CLIENT_ACCOUNT.OWNER
+        AND p_account_id = CLIENT_ACCOUNT.ID; -- Corrected the condition for p_account_id
+
+    DBMS_OUTPUT.PUT_LINE('Number of operations for user ' || p_user_id || ' and account ' || p_account_id || ': ' || v_operations_count);
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('No data found for the specified criteria.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END operations_amount;
+
+
+
+
+
+
+
