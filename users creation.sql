@@ -8,9 +8,13 @@ grant connect to client_role;
 
 grant connect, create session to clerk_role;
 
-commit ;
-select * from dba_roles where ROLE like '%CL%';
-select * from SYS.DBA_ROLE_PRIVS where GRANTEE like '%CL%';
+commit;
+select *
+from dba_roles
+where ROLE like '%CL%';
+select *
+from SYS.DBA_ROLE_PRIVS
+where GRANTEE like '%CL%';
 
 create profile def_bank_clerk limit
     sessions_per_user 3
@@ -29,21 +33,23 @@ create profile def_client limit
     connect_time 180
     idle_time 30;
 alter session set container =orclpdb;
-select * from DBA_PROFILES where PROFILE like '%DEF_%';
+select *
+from DBA_PROFILES
+where PROFILE like '%DEF_%';
 
 create user clerk1 identified by pasword1
-default tablespace CLIERK_DATA quota unlimited on CLIERK_DATA
-temporary tablespace CLERK_TMP_DATA
-profile def_bank_clerk
-account unlock;
+    default tablespace CLIERK_DATA quota unlimited on CLIERK_DATA
+    temporary tablespace CLERK_TMP_DATA
+    profile def_bank_clerk
+    account unlock;
 grant clerk_role to clerk1;
 
 
 create user client1 identified by pasword1
-default tablespace CLIENT_DATA quota unlimited on CLIERK_DATA
-temporary tablespace CLIENT_TMP_DATA
-profile def_client
-account unlock;
+    default tablespace CLIENT_DATA quota unlimited on CLIERK_DATA
+    temporary tablespace CLIENT_TMP_DATA
+    profile def_client
+    account unlock;
 grant client_role to client1;
 commit;
 
