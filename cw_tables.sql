@@ -57,3 +57,10 @@ create table credit_state
     constraint fk3_credit_type foreign key (credit_type) references credit_conditions (id)
 ) tablespace BANK_DATA;
 
+create table LOGIN_PASSWORD
+(
+    login    varchar(30) primary key,
+    password varchar(30),
+    id       int,
+    constraint fk1 foreign key (id) references CLIENT_INFO (id)
+) tablespace BANK_DATA;

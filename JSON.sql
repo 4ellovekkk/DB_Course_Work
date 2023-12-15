@@ -1,8 +1,8 @@
 --Import/export in JSON format
 CREATE OR REPLACE DIRECTORY MY_DIRECTORY AS '/opt/oracle/oradata/ORCLCDB';
 CREATE OR REPLACE PROCEDURE ExportUsersReviewsToJson(
-    p_directory VARCHAR2,
-    p_file_name VARCHAR2
+    p_directory in VARCHAR2,
+    p_file_name in VARCHAR2
 ) AS
     file_handle UTL_FILE.FILE_TYPE;
     cursor_data SYS_REFCURSOR;
@@ -12,13 +12,14 @@ BEGIN
 
     OPEN cursor_data FOR
         SELECT JSON_OBJECT(
-                       'USERS_REVIEWS_ON_MOVIE_ID' VALUE USERS_REVIEWS_ON_MOVIE_ID,
-                       'USER_REVIEW_TEXT' VALUE USER_REVIEW_TEXT,
-                       'DATE_OF_REVIEW' VALUE TO_CHAR(DATE_OF_REVIEW, 'YYYY-MM-DD'),
-                       'USER_PROFILE_ID' VALUE USER_PROFILE_ID,
-                       'ALL_INFORMATION_ABOUT_FILM_ID' VALUE ALL_INFORMATION_ABOUT_FILM_ID
+                       'ID' VALUE to_nchar(VYDRA_DBA.CLIENT_INFO.ID),
+                       'NAME' VALUE VYDRA_DBA.CLIENT_INFO.NAME,
+                       'SURNAME' VALUE VYDRA_DBA.CLIENT_INFO.SURNAME,
+                       'THIRDNAME' VALUE VYDRA_DBA.CLIENT_INFO.THIRDNAME,
+                       'BIRTH_DATE' VALUE to_date(VYDRA_DBA.CLIENT_INFO.BIRTH_DATE),
+                       'PHONE_NUMBER' VALUE VYDRA_DBA.CLIENT_INFO.PHONE_NUMBER
                ) AS json_object
-        FROM USERS_REVIEWS_ON_MOVIE;
+        FROM CLIENT_INFO;
 
     LOOP
         FETCH cursor_data INTO json_data;
@@ -57,9 +58,9 @@ BEGIN
                 -- Выход из цикла, если достигнут конец файла
                 EXIT;
         END;
-
+-- todo: fix json
         -- Вставка данных из JSON в таблицу
-        INSERT INTO USERS_REVIEWS_ON_MOVIE (USERS_REVIEWS_ON_MOVIE_ID,
+        INSERT INTO CLIENT_INFO (USERS_REVIEWS_ON_MOVIE_ID,
                                             USER_REVIEW_TEXT,
                                             DATE_OF_REVIEW,
                                             USER_PROFILE_ID,

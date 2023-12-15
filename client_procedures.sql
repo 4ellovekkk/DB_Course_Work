@@ -349,3 +349,10 @@ EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
 END operations_amount;
+
+
+create or replace procedure REGISTER_CLIENT(login in varchar2(20), password in varchar2(30), user_id in int)
+as
+begin
+
+end;
