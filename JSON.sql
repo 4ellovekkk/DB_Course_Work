@@ -58,13 +58,18 @@ BEGIN
                 -- Выход из цикла, если достигнут конец файла
                 EXIT;
         END;
--- todo: fix json
+        <<
+        <<
+        <<
+        <
+        HEAD
+        -- todo: fix json
         -- Вставка данных из JSON в таблицу
         INSERT INTO CLIENT_INFO (USERS_REVIEWS_ON_MOVIE_ID,
-                                            USER_REVIEW_TEXT,
-                                            DATE_OF_REVIEW,
-                                            USER_PROFILE_ID,
-                                            ALL_INFORMATION_ABOUT_FILM_ID)
+                                 USER_REVIEW_TEXT,
+                                 DATE_OF_REVIEW,
+                                 USER_PROFILE_ID,
+                                 ALL_INFORMATION_ABOUT_FILM_ID)
         SELECT jt.USERS_REVIEWS_ON_MOVIE_ID,
                jt.USER_REVIEW_TEXT,
                TO_DATE(jt.DATE_OF_REVIEW, 'YYYY-MM-DD') AS DATE_OF_REVIEW,
@@ -90,15 +95,49 @@ BEGIN
     -- Фиксация транзакции
     COMMIT;
 
+    =======
+
+        -- Вставка данных из JSON в таблицу
+    INSERT INTO USERS_REVIEWS_ON_MOVIE (USERS_REVIEWS_ON_MOVIE_ID,
+                                        USER_REVIEW_TEXT,
+                                        DATE_OF_REVIEW,
+                                        USER_PROFILE_ID,
+                                        ALL_INFORMATION_ABOUT_FILM_ID)
+    SELECT jt.USERS_REVIEWS_ON_MOVIE_ID,
+           jt.USER_REVIEW_TEXT,
+           TO_DATE(jt.DATE_OF_REVIEW, 'YYYY-MM-DD') AS DATE_OF_REVIEW,
+           jt.USER_PROFILE_ID,
+           jt.ALL_INFORMATION_ABOUT_FILM_ID
+    FROM JSON_TABLE(json_data, '$'
+                    COLUMNS (
+                        USERS_REVIEWS_ON_MOVIE_ID NUMBER PATH '$.USERS_REVIEWS_ON_MOVIE_ID',
+                        USER_REVIEW_TEXT VARCHAR2(1000) PATH '$.USER_REVIEW_TEXT',
+                        DATE_OF_REVIEW VARCHAR2(10) PATH '$.DATE_OF_REVIEW',
+                        USER_PROFILE_ID NUMBER PATH '$.USER_PROFILE_ID',
+                        ALL_INFORMATION_ABOUT_FILM_ID NUMBER PATH '$.ALL_INFORMATION_ABOUT_FILM_ID'
+                        )
+         ) jt;
+
+    -- Увеличение счетчика строк
+    total_rows := total_rows + 1;
+END LOOP;
+
+-- Закрытие файла
+UTL_FILE.FCLOSE(file_handle);
+
+-- Фиксация транзакции
+COMMIT;
+
+>>>>>>> 80953371b58baa158f70ca2e3889c4ca3617666e
     -- Возвращение общего числа вставленных строк
     RETURN total_rows;
 EXCEPTION
     -- Обработка исключений
     WHEN OTHERS THEN
         -- Откат транзакции в случае ошибки
-        ROLLBACK;
-        -- Повторное возбуждение исключения
-        RAISE;
+ROLLBACK;
+-- Повторное возбуждение исключения
+RAISE;
 END;
 /
 

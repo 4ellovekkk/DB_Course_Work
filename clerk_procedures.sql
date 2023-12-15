@@ -52,5 +52,3 @@ BEGIN
         END IF;
     END IF;
 END client_creation;
-
-
