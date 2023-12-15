@@ -1,72 +1,65 @@
 CREATE OR REPLACE PROCEDURE get_user_info(p_user_id IN NUMBER)
 AS
-  v_first_name  VARCHAR2(50);
-  v_second_name VARCHAR2(50);
-  v_third_name  VARCHAR2(50);
-    v_param_test number;
+    v_first_name  VARCHAR2(50);
+    v_second_name VARCHAR2(50);
+    v_third_name  VARCHAR2(50);
+    v_param_test  number;
 BEGIN
-    v_param_test:=to_number(p_user_id);
-  -- Validate that the provided parameter is a positive integer
-  IF p_user_id IS NOT NULL AND p_user_id > 0 AND p_user_id = TRUNC(p_user_id) THEN
-    -- Select user information
-    SELECT CLIENT_INFO.NAME, CLIENT_INFO.SURNAME, CLIENT_INFO.THIRDNAME
-    INTO v_first_name, v_second_name, v_third_name
-    FROM CLIENT_INFO
-    WHERE ID = p_user_id;
+    v_param_test := to_number(p_user_id);
+    -- Validate that the provided parameter is a positive integer
+    IF p_user_id IS NOT NULL AND p_user_id > 0 AND p_user_id = TRUNC(p_user_id) THEN
+        -- Select user information
+        SELECT CLIENT_INFO.NAME, CLIENT_INFO.SURNAME, CLIENT_INFO.THIRDNAME
+        INTO v_first_name, v_second_name, v_third_name
+        FROM CLIENT_INFO
+        WHERE ID = p_user_id;
 
-    -- Check if the user has a third name
-    IF v_third_name IS NOT NULL THEN
-      DBMS_OUTPUT.PUT_LINE('User ID: ' || p_user_id || ', First Name: ' || v_first_name ||
-                           ', Second Name: ' || v_second_name || ', Third Name: ' || v_third_name);
+        -- Check if the user has a third name
+        IF v_third_name IS NOT NULL THEN
+            DBMS_OUTPUT.PUT_LINE('User ID: ' || p_user_id || ', First Name: ' || v_first_name ||
+                                 ', Second Name: ' || v_second_name || ', Third Name: ' || v_third_name);
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('User ID: ' || p_user_id || ', First Name: ' || v_first_name ||
+                                 ', Second Name: ' || v_second_name || ', No Third Name');
+        END IF;
     ELSE
-      DBMS_OUTPUT.PUT_LINE('User ID: ' || p_user_id || ', First Name: ' || v_first_name ||
-                           ', Second Name: ' || v_second_name || ', No Third Name');
+        DBMS_OUTPUT.PUT_LINE('Invalid user ID provided.');
     END IF;
-  ELSE
-    DBMS_OUTPUT.PUT_LINE('Invalid user ID provided.');
-  END IF;
 
-  EXCEPTION
+EXCEPTION
     when VALUE_ERROR then
         DBMS_OUTPUT.PUT_LINE('Incorrect type of parameter was passed');
     WHEN NO_DATA_FOUND THEN
-      DBMS_OUTPUT.PUT_LINE('User with ID ' || p_user_id || ' not found.');
+        DBMS_OUTPUT.PUT_LINE('User with ID ' || p_user_id || ' not found.');
     WHEN OTHERS THEN
-      DBMS_OUTPUT.PUT_LINE('An error occurred for User ID ' || p_user_id || ': ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('An error occurred for User ID ' || p_user_id || ': ' || SQLERRM);
 END get_user_info;
 /
 
 
 
-
-
-
-
-
 CREATE OR REPLACE PROCEDURE check_balance(client_id IN NUMBER)
 AS
-    balance NUMBER; -- Corrected the data type
-    account_id NUMBER; -- Corrected the data type
+    balance      NUMBER; -- Corrected the data type
+    account_id   NUMBER; -- Corrected the data type
     v_param_test number;
 BEGIN
-    v_param_test:=to_number(client_id);
+    v_param_test := to_number(client_id);
     -- Removed unnecessary cast and adjusted the IF condition
-  IF client_id IS NOT NULL AND client_id > 0 AND client_id = TRUNC(client_id) THEN
+    IF client_id IS NOT NULL AND client_id > 0 AND client_id = TRUNC(client_id) THEN
         SELECT ID, BALANCE INTO account_id, balance FROM CLIENT_ACCOUNT WHERE OWNER = client_id;
         DBMS_OUTPUT.PUT_LINE('Account id: ' || account_id || ' Balance: ' || balance);
     END IF;
 
-    EXCEPTION
-when VALUE_ERROR then
+EXCEPTION
+    when VALUE_ERROR then
         DBMS_OUTPUT.PUT_LINE('Incorrect type of parameter was passed');
-        WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('User with ID ' || client_id || ' not found.');
-        WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('An error occurred for User ID ' || client_id || ': ' || SQLERRM);
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('User with ID ' || client_id || ' not found.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred for User ID ' || client_id || ': ' || SQLERRM);
 END check_balance;
 /
-
-
 
 
 
@@ -79,14 +72,13 @@ AS
     CURSOR c_account_history IS
         SELECT ACTION_DATE, ACTION, ACCOUNT
         FROM ACCOUNT_STATS
-        INNER JOIN VYDRA_DBA.CLIENT_ACCOUNT CA ON CA.ID = ACCOUNT_STATS.ACCOUNT
+                 INNER JOIN VYDRA_DBA.CLIENT_ACCOUNT CA ON CA.ID = ACCOUNT_STATS.ACCOUNT
         WHERE CA.OWNER = p_account_id
           AND ACTION_DATE >= p_from_date
           AND ACTION_DATE <= p_to_date;
-
     v_operation_date DATE;
-    v_operation NVARCHAR2(50);
-    v_account INT;
+    v_operation      NVARCHAR2(50);
+    v_account        INT;
 
 BEGIN
     -- Validate input parameters
@@ -127,29 +119,21 @@ END account_history;
 
 
 
-
-
-
-
-
-
-
-
-CREATE OR REPLACE PROCEDURE transfer (
+CREATE OR REPLACE PROCEDURE transfer(
     p_sender_account IN NUMBER,
     p_receiver_account IN NUMBER,
     p_sender_id IN NUMBER,
     p_amount IN NUMBER
 )
 AS
-    v_check_sender NUMBER;
-    v_check_receiver NUMBER;
+    v_check_sender    NUMBER;
+    v_check_receiver  NUMBER;
     v_check_parameter number;
 BEGIN
-    v_check_parameter:=to_number(p_sender_account);
-    v_check_parameter:=to_number(p_receiver_account);
-    v_check_parameter:=to_number(p_sender_id);
-    v_check_parameter:=to_number(p_amount);
+    v_check_parameter := to_number(p_sender_account);
+    v_check_parameter := to_number(p_receiver_account);
+    v_check_parameter := to_number(p_sender_id);
+    v_check_parameter := to_number(p_amount);
     -- Check if any parameter is NULL
     IF p_sender_account IS NULL OR p_receiver_account IS NULL OR p_sender_id IS NULL OR p_amount IS NULL THEN
         DBMS_OUTPUT.PUT_LINE('One or more parameters were not correctly passed.');
@@ -190,31 +174,29 @@ BEGIN
     SET BALANCE = BALANCE - p_amount
     WHERE ID = p_sender_account;
 
-    insert into ACCOUNT_STATS (account, action_date, action) VALUES (p_sender_account, sysdate,'debit from account '||p_sender_account||' in amount: '||p_amount);
-    insert into ACCOUNT_STATS (account, action_date, action) VALUES (p_receiver_account, sysdate,'refill '||p_receiver_account||' in amount: '||p_amount);
-    commit ;
+    insert into ACCOUNT_STATS (account, action_date, action)
+    VALUES (p_sender_account, sysdate, 'debit from account ' || p_sender_account || ' in amount: ' || p_amount);
+    insert into ACCOUNT_STATS (account, action_date, action)
+    VALUES (p_receiver_account, sysdate, 'refill ' || p_receiver_account || ' in amount: ' || p_amount);
+    commit;
 
     DBMS_OUTPUT.PUT_LINE('Successfully transferred ' || p_amount ||
                          ' from account ' || p_sender_account ||
                          ' to ' || p_receiver_account);
 exception
     when VALUE_ERROR then
-        DBMS_OUTPUT.PUT_LINE('Incorrect parametres type');
+        DBMS_OUTPUT.PUT_LINE('Incorrect parameters type');
 END transfer;
 /
 
 
 
-
-
-
-
-
-
-
-
-CREATE OR REPLACE PROCEDURE refill_account(p_account_id IN NUMBER, p_amount IN NUMBER) AS
+CREATE OR REPLACE PROCEDURE refill_account(p_account_id IN NUMBER, p_amount IN NUMBER)
+AS
+    v_param_check number;
 BEGIN
+    cast(v_param_check := p_account_id as number);
+    cast(v_param_check := p_amount as number);
     -- Проверка на NULL
     IF p_account_id IS NULL OR p_amount IS NULL THEN
         DBMS_OUTPUT.PUT_LINE('Incorrect parameters passed');
@@ -248,13 +230,9 @@ END refill_account;
 
 
 
-
-
-
-
-
-
-CREATE OR REPLACE PROCEDURE withdrawal(p_account_id IN NUMBER, p_amount IN NUMBER) AS
+CREATE OR REPLACE PROCEDURE withdrawal(p_account_id IN NUMBER, p_amount IN NUMBER)
+AS
+    v_check_param number;
 BEGIN
     -- Проверка на NULL
     IF p_account_id IS NULL OR p_amount IS NULL THEN
@@ -262,85 +240,85 @@ BEGIN
         RETURN;
     END IF;
 
-    -- Попытка преобразования параметров к числовому типу
-    BEGIN
-        -- Проверка на отрицательное значение счета
-        IF p_amount <= 0 THEN
-            DBMS_OUTPUT.PUT_LINE('Amount must be greater than 0');
-            RETURN;
-        END IF;
+    -- Попытка преобразования параметров к числовому типу (лишнее, так как параметры уже числового типа)
+    --cast(v_check_param := p_account_id as number);
+    --cast(v_check_param := p_amount as number);
+    -- Проверка на отрицательное значение суммы
+    IF p_amount <= 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Amount must be greater than 0');
+        RETURN;
+    END IF;
 
-        -- Проверка на существование счета
-        IF (SELECT COUNT(*) FROM CLIENT_ACCOUNT WHERE ID = p_account_id) = 1 THEN
-            UPDATE CLIENT_ACCOUNT SET BALANCE = BALANCE + p_amount WHERE ID = p_account_id;
+    -- Проверка на существование счета
+    DECLARE
+        v_account_count NUMBER;
+    BEGIN
+        SELECT COUNT(*) INTO v_account_count FROM CLIENT_ACCOUNT WHERE ID = p_account_id;
+
+        IF v_account_count = 1 THEN
+            UPDATE CLIENT_ACCOUNT SET BALANCE = BALANCE - p_amount WHERE ID = p_account_id;
             COMMIT;
-            DBMS_OUTPUT.PUT_LINE('money was withdrawaled successfully');
+            DBMS_OUTPUT.PUT_LINE('Money was withdrawn successfully');
         ELSE
             DBMS_OUTPUT.PUT_LINE('Account does not exist');
         END IF;
-    EXCEPTION
-        WHEN VALUE_ERROR THEN
-            DBMS_OUTPUT.PUT_LINE('Incorrect parameters passed');
-        WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
     END;
+
+EXCEPTION
+    WHEN VALUE_ERROR THEN
+        DBMS_OUTPUT.PUT_LINE('Incorrect parameters passed');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
 END withdrawal;
-
-
-
-
 
 
 
 CREATE or replace procedure accounts_amount(p_client_id in int)
 as
     v_param_check_number int;
-    v_amount int;
-    begin
-        v_param_check_number := to_number(p_client_id);
-       select count(*) into v_amount from CLIENT_ACCOUNT where OWNER = p_client_id;
-        DBMS_OUTPUT.PUT_LINE('Amount of accounts for current user is: '||v_amount);
-    exception
+    v_amount             int;
+begin
+    v_param_check_number := to_number(p_client_id);
+    select count(*) into v_amount from CLIENT_ACCOUNT where OWNER = p_client_id;
+    DBMS_OUTPUT.PUT_LINE('Amount of accounts for current user is: ' || v_amount);
+exception
     WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('No records found for the specified account');
+        DBMS_OUTPUT.PUT_LINE('No records found for the specified account');
     when VALUE_ERROR then
-        DBMS_OUTPUT.PUT_LINE('Incorrect parametres type');
+        DBMS_OUTPUT.PUT_LINE('Incorrect parameters type');
     WHEN OTHERS THEN
-            DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
-    end accounts_amount;
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+end accounts_amount;
 
 CREATE OR REPLACE PROCEDURE accounts_turnover(p_user_id IN INT)
 AS
-  v_total_sum NUMBER := 0;
-
-  CURSOR c_values_for_user IS
-    SELECT amount
-    FROM ACCOUNT_STATS
-    INNER JOIN CLIENT_ACCOUNT ON ACCOUNT_STATS.ACCOUNT = CLIENT_ACCOUNT.ID
-    WHERE OWNER = p_user_id AND AMOUNT IS NOT NULL;
+    v_total_sum NUMBER := 0;
+    CURSOR c_values_for_user IS
+        SELECT amount
+        FROM ACCOUNT_STATS
+                 INNER JOIN CLIENT_ACCOUNT ON ACCOUNT_STATS.ACCOUNT = CLIENT_ACCOUNT.ID
+        WHERE OWNER = p_user_id
+          AND AMOUNT IS NOT NULL;
 
 BEGIN
-  FOR r_value IN c_values_for_user LOOP
-    v_total_sum := v_total_sum + r_value.amount; -- Use lowercase for cursor attribute
-  END LOOP;
+    FOR r_value IN c_values_for_user
+        LOOP
+            v_total_sum := v_total_sum + r_value.amount; -- Use lowercase for cursor attribute
+        END LOOP;
 
-  IF v_total_sum IS NOT NULL THEN
-    DBMS_OUTPUT.PUT_LINE('Total sum for user ' || p_user_id || ': ' || v_total_sum);
-  ELSE
-    DBMS_OUTPUT.PUT_LINE('No data found for user ' || p_user_id);
-  END IF;
+    IF v_total_sum IS NOT NULL THEN
+        DBMS_OUTPUT.PUT_LINE('Total sum for user ' || p_user_id || ': ' || v_total_sum);
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('No data found for user ' || p_user_id);
+    END IF;
 
 EXCEPTION
-  WHEN NO_DATA_FOUND THEN
-    DBMS_OUTPUT.PUT_LINE('No data found for user ' || p_user_id);
-  WHEN OTHERS THEN
-    DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('No data found for user ' || p_user_id);
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
 END accounts_turnover;
 /
-
-
-
-
 
 
 CREATE OR REPLACE PROCEDURE operations_amount(
@@ -349,20 +327,21 @@ CREATE OR REPLACE PROCEDURE operations_amount(
     p_user_id IN INT,
     p_account_id IN INT
 )
-IS
+    IS
     v_operations_count INT;
 
 BEGIN
     SELECT COUNT(*)
     INTO v_operations_count
     FROM ACCOUNT_STATS
-    INNER JOIN VYDRA_DBA.CLIENT_ACCOUNT ON ACCOUNT_STATS.ACCOUNT = CLIENT_ACCOUNT.ID
+             INNER JOIN VYDRA_DBA.CLIENT_ACCOUNT ON ACCOUNT_STATS.ACCOUNT = CLIENT_ACCOUNT.ID
     WHERE ACTION_DATE <= p_to_date
-        AND ACTION_DATE >= p_from_date
-        AND p_user_id = CLIENT_ACCOUNT.OWNER
-        AND p_account_id = CLIENT_ACCOUNT.ID; -- Corrected the condition for p_account_id
+      AND ACTION_DATE >= p_from_date
+      AND p_user_id = CLIENT_ACCOUNT.OWNER
+      AND p_account_id = CLIENT_ACCOUNT.ID; -- Corrected the condition for p_account_id
 
-    DBMS_OUTPUT.PUT_LINE('Number of operations for user ' || p_user_id || ' and account ' || p_account_id || ': ' || v_operations_count);
+    DBMS_OUTPUT.PUT_LINE('Number of operations for user ' || p_user_id || ' and account ' || p_account_id || ': ' ||
+                         v_operations_count);
 
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
@@ -370,10 +349,3 @@ EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
 END operations_amount;
-
-
-
-
-
-
-
