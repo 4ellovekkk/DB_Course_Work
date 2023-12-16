@@ -232,7 +232,6 @@ END refill_account;
 
 CREATE OR REPLACE PROCEDURE withdrawal(p_account_id IN NUMBER, p_amount IN NUMBER)
 AS
-    v_check_param number;
 BEGIN
     -- Проверка на NULL
     IF p_account_id IS NULL OR p_amount IS NULL THEN
@@ -240,10 +239,7 @@ BEGIN
         RETURN;
     END IF;
 
-    -- Попытка преобразования параметров к числовому типу (лишнее, так как параметры уже числового типа)
-    --cast(v_check_param := p_account_id as number);
-    --cast(v_check_param := p_amount as number);
-    -- Проверка на отрицательное значение суммы
+
     IF p_amount <= 0 THEN
         DBMS_OUTPUT.PUT_LINE('Amount must be greater than 0');
         RETURN;
@@ -351,7 +347,81 @@ EXCEPTION
 END operations_amount;
 
 
-create or replace procedure REGISTER_CLIENT(login in varchar2(20), password in varchar2(30), user_id in int)
+
+CREATE OR REPLACE PROCEDURE REGISTER_CLIENT(
+    p_login IN VARCHAR2(20),
+    p_password IN VARCHAR2(30),
+    p_user_id IN INT
+) AS
+    v_client_count INT;
+    v_login_taken  int;
+BEGIN
+    -- Check if the client with the given ID exists
+    SELECT COUNT(*)
+    INTO v_client_count
+    FROM CLIENT_ACCOUNT
+    WHERE CLIENT_ACCOUNT.ID = p_user_id;
+
+    select COUNT(*) into v_login_taken from LOGIN_PASSWORD where p_login = LOGIN;
+
+    -- Handle the case when the client with the given ID does not exist
+    IF v_client_count = 0 and v_login_taken = 0 THEN
+        -- Insert login and password for the client
+        INSERT INTO LOGIN_PASSWORD (LOGIN, PASSWORD, ID)
+        VALUES (p_login, p_password, p_user_id);
+        DBMS_OUTPUT.PUT_LINE('Client registered successfully');
+    end if;
+    if v_login_taken > 0 then
+        DBMS_OUTPUT.PUT_LINE('This login was already taken');
+
+    ELSE
+        -- Raise an exception when the client with the given ID does not exist
+        RAISE_APPLICATION_ERROR(-20001, 'Incorrect ID: No such client');
+        return;
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        -- Handle the case when there is no data found during the SELECT statement
+        DBMS_OUTPUT.PUT_LINE('No such client');
+    WHEN VALUE_ERROR THEN
+        -- Handle the case when a value error occurs (e.g., incorrect parameter type)
+        DBMS_OUTPUT.PUT_LINE('Incorrect parameter type');
+    WHEN OTHERS THEN
+        -- Handle any other unexpected errors
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END REGISTER_CLIENT;
+/
+
+CREATE OR REPLACE PROCEDURE LOGIN_CLIENT(
+    p_login IN NVARCHAR2(30),
+    p_password IN NVARCHAR2(30)
+) AS
+    v_is_exists NUMBER;
+BEGIN
+    -- Check if the login and password exist in LOGIN_PASSWORD table
+    SELECT COUNT(*)
+    INTO v_is_exists
+    FROM LOGIN_PASSWORD
+    WHERE LOGIN = p_login
+      AND PASSWORD = p_password;
+
+    -- Handle the case when login or password is incorrect
+    IF v_is_exists = 0 THEN
+        -- Raise an exception for incorrect login or password
+        RAISE_APPLICATION_ERROR(-20002, 'Incorrect login or password');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Client logged in successfully');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle any other unexpected errors
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END LOGIN_CLIENT;
+/
+
+
+
+create or replace procedure CLIENT_INFO_CHANGING()
 as
 begin
 

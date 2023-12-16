@@ -52,3 +52,35 @@ BEGIN
         END IF;
     END IF;
 END client_creation;
+
+
+
+CREATE OR REPLACE PROCEDURE CLERK_LOGIN(
+    p_login IN NVARCHAR2(30),
+    p_password IN NVARCHAR2(30)
+) AS
+    v_is_exists NUMBER;
+BEGIN
+    -- Check if the login and password exist in CLERK_LOGIN_PASSWORD table
+    SELECT COUNT(*)
+    INTO v_is_exists
+    FROM CLERK_LOGIN_PASSWORD
+    WHERE LOGIN = p_login
+      AND PASSWORD = p_password;
+
+    -- Handle the case when login or password is incorrect
+    IF v_is_exists = 0 THEN
+        -- Raise an exception for incorrect login or password
+        RAISE_APPLICATION_ERROR(-20002, 'Incorrect login or password');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Worker logged in successfully');
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END CLERK_LOGIN;
+/
+
+
+
+

@@ -64,3 +64,21 @@ create table LOGIN_PASSWORD
     id       int,
     constraint fk1 foreign key (id) references CLIENT_INFO (id)
 ) tablespace BANK_DATA;
+
+
+create table CLERK_LOGIN_PASSWORD
+(
+    id       int,
+    login    nvarchar2(30) primary key,
+    password nvarchar2(30),
+    constraint fk1_cler_info foreign key (id) references CLERK_INFO (id)
+) tablespace BANK_DATA;
+
+create table CLERK_INFO
+(
+    id         int generated always as identity primary key,
+    name       nvarchar2(50),
+    surname    nvarchar2(50),
+    thirdname  nvarchar2(50),
+    birth_date date
+) tablespace CLIERK_DATA;
