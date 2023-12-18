@@ -17,11 +17,13 @@ BEGIN
 
     -- Insert into CLIENT_INFO
     BEGIN
-        IF p_name IS NOT NULL AND p_surname IS NOT NULL AND p_birth_date IS NOT NULL AND p_phone_number IS NOT NULL THEN
+        IF p_name IS NOT NULL AND p_surname IS NOT NULL AND p_birth_date IS NOT NULL AND p_phone_number IS NOT NULL and
+           (extract(year from p_birth_date) <= (extract(year from sysdate) - 18)) and length(p_phone_number) = 13 and
+           '+' in p_phone_number THEN
             INSERT INTO CLIENT_INFO(name, surname, thirdname, birth_date, phone_number)
             VALUES (p_name, p_surname, NVL(p_thirdname, ''), p_birth_date, p_phone_number);
         ELSE
-            RAISE_APPLICATION_ERROR(-20002, 'Name, surname, birth date, and phone number cannot be NULL');
+            RAISE_APPLICATION_ERROR(-20002, 'Incorrect client data');
         END IF;
     EXCEPTION
         WHEN OTHERS THEN

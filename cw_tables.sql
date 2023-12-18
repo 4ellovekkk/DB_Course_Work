@@ -35,26 +35,25 @@ create table actions
     action_name nvarchar2(50)
 ) tablespace BANK_DATA;
 
-create table credit_conditions
+create table deposit_conditions
 (
     id                  int generated always as identity primary key,
     procentage_per_year float,
     name                nvarchar2(50),
-    termin              int,
-    items_type          nvarchar2(90)
+    termin              int
 ) tablespace BANK_DATA;
 
-create table credit_state
+create table deposit_state
 (
     id              int generated always as identity primary key,
-    is_payed        int check ( is_payed in (0, 1)),
     owner           int,
-    current_debt    float,
+    current_amount    float,
     account_for_pay int,
-    credit_type     int,
+    deposit_type     int,
+    start_date date,
     constraint fk1_account foreign key (account_for_pay) references CLIENT_ACCOUNT (id),
     constraint fk2_owner foreign key (owner) references CLIENT_INFO (id),
-    constraint fk3_credit_type foreign key (credit_type) references credit_conditions (id)
+    constraint fk3_credit_type foreign key (deposit_type) references deposit_conditions (id)
 ) tablespace BANK_DATA;
 
 create table LOGIN_PASSWORD
