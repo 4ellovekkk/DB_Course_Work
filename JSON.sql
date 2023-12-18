@@ -15,7 +15,7 @@ BEGIN
                        'ID' VALUE to_nchar(VYDRA_DBA.CLIENT_INFO.ID),
                        'NAME' VALUE VYDRA_DBA.CLIENT_INFO.NAME,
                        'SURNAME' VALUE VYDRA_DBA.CLIENT_INFO.SURNAME,
-                       'THIRDNAME' VALUE VYDRA_DBA.CLIENT_INFO.THIRDNAME,
+                       'THIRD NAME' VALUE VYDRA_DBA.CLIENT_INFO.THIRDNAME,
                        'BIRTH_DATE' VALUE to_date(VYDRA_DBA.CLIENT_INFO.BIRTH_DATE),
                        'PHONE_NUMBER' VALUE VYDRA_DBA.CLIENT_INFO.PHONE_NUMBER
                ) AS json_object
