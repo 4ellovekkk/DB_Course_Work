@@ -1046,6 +1046,3 @@ EXCEPTION
         RAISE_APPLICATION_ERROR(-20001, 'An error occurred: ' || SQLERRM);
 END withdrawal;
 /
-
-
-

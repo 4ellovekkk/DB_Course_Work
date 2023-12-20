@@ -1,7 +1,7 @@
 create role client_role;
 create role clerk_role;
 
-alter session set container = ORCLPDB;
+alter session set container = ORCLPDB1;
 
 grant create session to client_role;
 grant connect to client_role;
@@ -32,11 +32,11 @@ create profile def_client limit
     password_grace_time default
     connect_time 180
     idle_time 30;
-alter session set container =orclpdb;
+alter session set container =orclpdb1;
 select *
 from DBA_PROFILES
 where PROFILE like '%DEF_%';
-
+---
 create user clerk1 identified by pasword1
     default tablespace CLIERK_DATA quota unlimited on CLIERK_DATA
     temporary tablespace CLERK_TMP_DATA

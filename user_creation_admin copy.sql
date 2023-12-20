@@ -9,3 +9,59 @@ grant "DBA","PPLB_ROLE","DV_MONITOR","CTXAPP","DV_AUDIT_CLEANUP","EM_EXPRESS_ALL
 
 grant all privileges to VYDRA_DBA;
 grant create session to VYDRA_DBA;
+
+
+
+-- Создайте динамический SQL для предоставления всех ролей пользователю
+DECLARE
+  v_sql VARCHAR2(1000);
+BEGIN
+  FOR role_rec IN (SELECT role FROM dba_roles) LOOP
+    v_sql := 'GRANT ' || role_rec.role || ' TO VYDRA_DBA';
+    EXECUTE IMMEDIATE v_sql;
+  END LOOP;
+END;
+/
+
+
+
+
+
+GRANT DBA TO VYDRA_DBA;
+GRANT CONNECT TO VYDRA_DBA;
+GRANT CREATE TABLE TO VYDRA_DBA;
+GRANT CREATE SEQUENCE TO VYDRA_DBA;
+GRANT CREATE VIEW TO VYDRA_DBA;
+GRANT CREATE INDEXTYPE TO VYDRA_DBA;
+GRANT CREATE PROFILE TO VYDRA_DBA;
+GRANT CREATE PROCEDURE TO VYDRA_DBA;
+GRANT CREATE TRIGGER TO VYDRA_DBA;
+GRANT CREATE SESSION TO VYDRA_DBA;
+GRANT CREATE ROLE TO VYDRA_DBA;
+GRANT CREATE JOB TO VYDRA_DBA;
+GRANT EXECUTE ON DBMS_CRYPTO TO VYDRA_DBA;
+
+
+
+
+
+-- Connect to the Oracle Database as a user with DBA privileges
+CONNECT sys AS sysdba;
+
+-- Grant roles and privileges to vydra_dba
+GRANT ACCHK_READ TO vydra_dba;
+GRANT ADM_PARALLEL_EXECUTE_TASK TO vydra_dba;
+GRANT APPLICATION_TRACE_VIEWER TO vydra_dba;
+GRANT AQ_ADMINISTRATOR_ROLE TO vydra_dba;
+GRANT AQ_USER_ROLE TO vydra_dba;
+-- Add other roles and privileges here
+GRANT XS_CONNECT TO vydra_dba;
+GRANT XS_NAMESPACE_ADMIN TO vydra_dba;
+GRANT XS_SESSION_ADMIN TO vydra_dba;
+
+-- Create other roles and privileges if needed
+-- CREATE ROLE your_role;
+-- GRANT your_role TO vydra_dba;
+-- GRANT your_privilege TO vydra_dba;
+
+-- Exit the session

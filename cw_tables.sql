@@ -18,6 +18,13 @@ CREATE TABLE CLIENT_ACCOUNT
     CONSTRAINT fk_client FOREIGN KEY (owner) REFERENCES CLIENT_INFO (id)
 ) TABLESPACE CLIENT_DATA;
 
+
+create table actions
+(
+    id          int generated always as identity primary key,
+    action_name nvarchar2(50)
+) tablespace BANK_DATA;
+
 create table ACCOUNT_STATS
 (
     id          int generated always as identity primary key,
@@ -29,11 +36,6 @@ create table ACCOUNT_STATS
     constraint fk2_action foreign key (action) references actions (id)
 ) tablespace CLIENT_DATA;
 
-create table actions
-(
-    id          int generated always as identity primary key,
-    action_name nvarchar2(50)
-) tablespace BANK_DATA;
 
 create table deposit_conditions
 (
@@ -65,14 +67,6 @@ create table LOGIN_PASSWORD
 ) tablespace BANK_DATA;
 
 
-create table CLERK_LOGIN_PASSWORD
-(
-    id       int,
-    login    nvarchar2(30) primary key,
-    password nvarchar2(30),
-    constraint fk1_cler_info foreign key (id) references CLERK_INFO (id)
-) tablespace BANK_DATA;
-
 create table CLERK_INFO
 (
     id         int generated always as identity primary key,
@@ -81,3 +75,13 @@ create table CLERK_INFO
     thirdname  nvarchar2(50),
     birth_date date
 ) tablespace CLIERK_DATA;
+
+
+
+create table CLERK_LOGIN_PASSWORD
+(
+    id       int,
+    login    nvarchar2(30) primary key,
+    password nvarchar2(30),
+    constraint fk1_cler_info foreign key (id) references CLERK_INFO (id)
+) tablespace BANK_DATA;

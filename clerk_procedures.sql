@@ -73,7 +73,6 @@ END CLERK_LOGIN;
 
 
 
-
 CREATE OR REPLACE PROCEDURE CLIENT_DELETE(p_client_id IN INT) AS
     v_is_client_exists INT;
 
@@ -240,4 +239,39 @@ EXCEPTION
 END CHANGE_CLIENT_ACCOUNT_TYPE;
 /
 
+
+create or replace procedure delete_deposit_condition(p_condition_id in int)
+as
+    v_if_exists int;
+        v_if_accounts int;
+begin
+    if p_condition_id is null then raise_application_error(-20001, 'Condition id is null'); end if;
+    select count(*) into v_if_exists from DEPOSIT_CONDITIONS where ID = p_condition_id;
+    select count(*) into v_if_accounts from DEPOSIT_STATE inner join DEPOSIT_CONDITIONS on DEPOSIT_STATE.DEPOSIT_TYPE = DEPOSIT_CONDITIONS.ID where (extract(year from START_DATE)+TERMIN)<extract(year from sysdate);
+    if v_if_exists > 0 and v_if_accounts=0 then
+        delete from DEPOSIT_CONDITIONS where ID = p_condition_id;
+        DBMS_OUTPUT.PUT_LINE('Deposit condition deleted successfully');
+        commit;
+    else
+        raise_application_error(-20001, 'No deposit condition with such id or deposits with this condition didnt expired');
+    end if;
+end;
+
+select *
+from DEPOSIT_CONDITIONS;
+
+create or replace procedure create_deposit_condition(p_percentage in int, p_name nvarchar2, p_termin in int)
+as
+begin
+    if p_percentage is null or p_name is null or p_termin is null then
+        raise_application_error(-20001, 'Conditions is incorrect');
+    end if;
+    if p_termin > 0 and p_percentage > 0 then
+        insert into DEPOSIT_CONDITIONS(procentage_per_year, name, termin) values (p_percentage, p_name, p_termin);
+        dbms_output.put_line('Deposit condition created successfully');
+        commit;
+    else
+        raise_application_error(-20001, 'Incorrect parametres');
+    end if;
+end;
 

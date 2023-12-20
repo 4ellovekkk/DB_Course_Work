@@ -9,3 +9,6 @@ grant "DBA","PPLB_ROLE","DV_MONITOR","CTXAPP","DV_AUDIT_CLEANUP","EM_EXPRESS_ALL
 
 grant all privileges to VYDRA_DBA;
 grant create session to VYDRA_DBA;
+
+select *
+from SYS.DBA_USERS
