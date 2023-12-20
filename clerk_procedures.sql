@@ -32,48 +32,46 @@ BEGIN
 END client_creation;
 /
 
-CREATE OR REPLACE PROCEDURE CLERK_LOGIN(
+
+
+create or replace PROCEDURE CLERK_LOGIN(
     p_login IN NVARCHAR2(30),
     p_password IN NVARCHAR2(30)
 ) AS
     v_is_exists NUMBER;
 
-    -- Exception for no rows found
-    NO_ROWS_FOUND EXCEPTION;
-    PRAGMA EXCEPTION_INIT (NO_ROWS_FOUND, -1403);
-
-    -- Exception for too many rows found
-    TOO_MANY_ROWS EXCEPTION;
-    PRAGMA EXCEPTION_INIT (TOO_MANY_ROWS, -1422);
-
 BEGIN
-    -- Check if the login and password exist in CLERK_LOGIN_PASSWORD table
-    BEGIN
-        SELECT 1
-        INTO v_is_exists
-        FROM CLERK_LOGIN_PASSWORD
-        WHERE LOGIN = p_login
-          AND PASSWORD = p_password
-          AND ROWNUM = 1; -- Use ROWNUM to optimize for existence check
+    -- Check for null parameters
+    IF p_login IS NULL OR p_password IS NULL THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Incorrect parameters passed');
+    END IF;
 
-        IF v_is_exists IS NULL THEN
-            RAISE_APPLICATION_ERROR(-20002, 'Incorrect login or password');
-        END IF;
-    EXCEPTION
-        WHEN NO_ROWS_FOUND THEN
-            RAISE_APPLICATION_ERROR(-20002, 'Incorrect login or password');
-        WHEN TOO_MANY_ROWS THEN
-            RAISE_APPLICATION_ERROR(-20003,
-                                    'Multiple records found for the same login and password. Data integrity issue.');
-    END;
+    -- Check login and password in CLERK_LOGIN_PASSWORD table
+    SELECT COUNT(*)
+    INTO v_is_exists
+    FROM CLERK_LOGIN_PASSWORD
+    WHERE LOGIN = p_login
+      AND PASSWORD = p_password;
 
-    -- Display success message
-    DBMS_OUTPUT.PUT_LINE('Worker logged in successfully');
+    -- Handle incorrect login or password
+    IF v_is_exists != 1 THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Incorrect login or password');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Worker logged in successfully');
+    END IF;
+
 EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Incorrect login or password');
+    WHEN TOO_MANY_ROWS THEN
+        RAISE_APPLICATION_ERROR(-20003,
+                                'Multiple records found for the same login and password. Data integrity issue.');
     WHEN OTHERS THEN
         RAISE_APPLICATION_ERROR(-20001, 'An error occurred: ' || SQLERRM);
 END CLERK_LOGIN;
 /
+
+
 
 
 CREATE OR REPLACE PROCEDURE CLIENT_DELETE(p_client_id IN INT) AS
