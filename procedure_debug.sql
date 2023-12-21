@@ -7,7 +7,7 @@ begin
 end;
 
 begin
-    ACCOUNTS_AMOUNT(115448);
+    ACCOUNTS_AMOUNT(15310);
 end;
 
 begin
@@ -23,28 +23,34 @@ begin
 end;
 
 begin
-    CLIENT_CREATION('Sanya', 'Sakovich', 'Viktorovich', to_date('2003-10-12', 'yyyy-mm-dd'), '375333456789$');
+    CLIENT_CREATION('Sanya1', 'Sakovich', 'Viktorovich', to_date('2003-10-12', 'yyyy-mm-dd'), '375333456789$');
 end;
 
 select *
 from CLIENT_INFO
 where NAME = 'Sanya';
 
+
 begin
-    CLIENT_DELETE(114009);
+    CLIENT_DELETE(916);
 end;
+select OWNEr from CLIENT_ACCOUNT where BALANCE >0;
+update CLIENT_ACCOUNT
+set BALANCE=0
+where OWNER = 916;
+commit;
+select *
+from CLIENT_ACCOUNT
+where OWNER = 44879;
+commit;
 
 --client_info_changing not checked
-begin
-    CLIENT_INFO_CHANGING(10, 'Test', 'Man', '', '375295357399');
-end;
-
 begin
     CREATE_DEPOSIT(15311, 1, 10.24);
 end;
 
 begin
-    CREATE_ACCOUNT_FOR_CLIENT(15310,0);
+    CREATE_ACCOUNT_FOR_CLIENT(15310, 0);
 end;
 
 select *
@@ -161,4 +167,24 @@ from CLIENT_INFO
 
 
 CREATE INDEX client_info__idx
-ON client_info(name, surname, BIRTH_DATE) ;
+    ON client_info (name, surname, BIRTH_DATE);
+
+
+begin
+    GET_USER_INFO(44312);
+end;
+
+select * from CLIENT_ACCOUNT where OWNER=44312;
+
+update CLIENT_ACCOUNT set IS_LOCKED=1 where ID=79489;
+commit ;
+begin
+    REFILL_ACCOUNT(79489,20);
+end;
+
+select * from DEPOSIT_STATE;
+select * from DEPOSIT_CONDITIONS;
+
+begin
+    COUNT_DEPOSIT_PROFIT(101592,15310);
+end;
