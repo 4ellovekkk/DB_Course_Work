@@ -31,7 +31,7 @@ from CLIENT_INFO
 where NAME = 'Sanya';
 
 begin
-    CLIENT_DELETE(200001);
+    CLIENT_DELETE(114009);
 end;
 
 --client_info_changing not checked
@@ -41,6 +41,10 @@ end;
 
 begin
     CREATE_DEPOSIT(15311, 1, 10.24);
+end;
+
+begin
+    CREATE_ACCOUNT_FOR_CLIENT(15310,0);
 end;
 
 select *
@@ -65,11 +69,11 @@ end;
 begin
     GET_USER_INFO(15310);
 end;
---fix
-begin
-    READ_JSON_FILE();
-end;
---fix
+
+
+BEGIN
+    READ_JSON_FILE('your_filename.json');
+END;
 
 select *
 from LOGIN_PASSWORD;
@@ -139,8 +143,22 @@ where ACCOUNT = 44869;
 begin
     create_deposit_condition(10, 'tets1', 4);
 end;
-select * from DEPOSIT_CONDITIONS;
+select *
+from DEPOSIT_CONDITIONS;
 
 begin
     delete_deposit_condition(42);
 end;
+
+select count(*)
+from CLIENT_INFO;
+
+
+
+select CLIENT_INFO.ID, surname, thirdname, birth_date, CLIENT_ACCOUNT.ID, CLIENT_ACCOUNT.BALANCE
+from CLIENT_INFO
+         inner join CLIENT_ACCOUNT on CLIENT_INFO.ID = CLIENT_ACCOUNT.OWNER;
+
+
+CREATE INDEX client_info__idx
+ON client_info(name, surname, BIRTH_DATE) ;

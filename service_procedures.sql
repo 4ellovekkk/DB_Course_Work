@@ -145,3 +145,59 @@ BEGIN
 END generate_random_data;
 /
 
+CREATE OR REPLACE TRIGGER after_insert_deposit_conditions
+after INSERT ON DEPOSIT_CONDITIONS
+FOR EACH ROW
+DECLARE
+BEGIN
+    -- You can add additional conditions or logic here if needed
+
+    -- Print a message to DBMS_OUTPUT
+    DBMS_OUTPUT.PUT_LINE('Deposit condition created');
+END after_insert_deposit_conditions;
+
+
+
+
+
+
+
+create or replace directory JSONDIR as '/opt/oracle/oradata/ORCLCDB1/ORCLPDB1';
+CREATE OR REPLACE PROCEDURE read_json_file(P_FILE_NAME NVARCHAR2) AS
+    v_clob_data   CLOB;
+    v_file_handle UTL_FILE.FILE_TYPE;
+BEGIN
+    -- Открытие файла для чтения
+    v_file_handle := UTL_FILE.FOPEN('JSONDIR', P_FILE_NAME, 'r');
+
+    BEGIN
+        LOOP
+            -- Чтение данных из файла
+            UTL_FILE.GET_LINE(v_file_handle, v_clob_data);
+            EXIT WHEN v_clob_data IS NULL;
+
+            -- Вывод JSON-данных в консоль
+            DBMS_OUTPUT.PUT_LINE(v_clob_data);
+        END LOOP;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            NULL;
+    END;
+
+    -- Закрытие файла
+    UTL_FILE.FCLOSE(v_file_handle);
+
+    -- Вывод завершающего сообщения
+    DBMS_OUTPUT.PUT_LINE('Чтение JSON-данных завершено');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Ошибка при чтении JSON-данных: ' || SQLERRM);
+END read_json_file;
+/
+
+
+
+
+
+
+
